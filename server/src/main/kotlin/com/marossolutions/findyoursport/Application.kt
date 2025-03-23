@@ -1,10 +1,13 @@
 package com.marossolutions.findyoursport
 
+import com.marossolutions.findyoursport.plugins.configureDI
+import com.marossolutions.findyoursport.plugins.configureDatabases
+import com.marossolutions.findyoursport.plugins.configureMonitoring
+import com.marossolutions.findyoursport.plugins.configureRouting
+import com.marossolutions.findyoursport.plugins.configureSerialization
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
 
 fun main() {
     embeddedServer(Netty, port = SERVER_PORT, host = "0.0.0.0", module = Application::module)
@@ -12,9 +15,9 @@ fun main() {
 }
 
 fun Application.module() {
-    routing {
-        get("/") {
-            call.respondText("Ktor: ${Greeting().greet()}")
-        }
-    }
+    configureMonitoring()
+    configureDI()
+    configureSerialization()
+    configureDatabases()
+    configureRouting()
 }

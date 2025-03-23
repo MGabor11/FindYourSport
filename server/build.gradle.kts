@@ -8,7 +8,8 @@ group = "com.marossolutions.findyoursport"
 version = "1.0.0"
 application {
     mainClass.set("com.marossolutions.findyoursport.ApplicationKt")
-    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=${extra["io.ktor.development"] ?: "false"}")
+    applicationDefaultJvmArgs =
+        listOf("-Dio.ktor.development=${extra["io.ktor.development"] ?: "false"}")
 }
 
 dependencies {
@@ -16,6 +17,21 @@ dependencies {
     implementation(libs.logback)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
-    testImplementation(libs.ktor.server.tests)
+    implementation(libs.ktor.server.content.negotiation)
+
+    // MySQL connector
+    implementation(libs.mysql.connector.j)
+
+    // Exposed
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.jdbc)
+
+    // Logging
+    implementation(libs.ktor.server.call.logging.jvm)
+
+    // Koin
+    implementation(libs.koin.ktor)
+
+    // Testing
     testImplementation(libs.kotlin.test.junit)
 }
