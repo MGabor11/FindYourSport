@@ -1,36 +1,86 @@
 package com.marossolutions.findyoursport
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
-
+import androidx.compose.material.Scaffold
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import com.marossolutions.findyoursport.navigation.AppNavHost
+import com.marossolutions.findyoursport.navigation.SimpleNavigator
+import com.marossolutions.findyoursport.navigation.screens.ScreenAddSportPlace
+import com.marossolutions.findyoursport.navigation.screens.ScreenHome
+import com.marossolutions.findyoursport.theme.AppTheme
 import findyoursport.composeapp.generated.resources.Res
-import findyoursport.composeapp.generated.resources.compose_multiplatform
+import findyoursport.composeapp.generated.resources.add_sport_place_title
+import findyoursport.composeapp.generated.resources.home_title
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.KoinContext
+import org.koin.compose.koinInject
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
 fun App() {
-    MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+    AppTheme {
+        KoinContext {
+            val simpleNavigator = koinInject<SimpleNavigator>()
+            val navController: NavHostController = rememberNavController()
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                            containerColor = androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer,
+                            titleContentColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                        ),
+                        title = {
+                            val appScreen by simpleNavigator.currentAppScreen.collectAsStateWithLifecycle()
+                            val titleRes by remember {
+                                derivedStateOf {
+                                    when (appScreen) {
+                                        is ScreenHome -> Res.string.home_title
+                                        is ScreenAddSportPlace -> Res.string.add_sport_place_title
+                                        else -> null
+                                    }
+                                }
+                            }
+                            titleRes?.let {
+                                androidx.compose.material3.Text(stringResource(it))
+                            }
+                        },
+                        navigationIcon = {
+                            val backStack by navController.currentBackStack.collectAsStateWithLifecycle()
+                            val showBackButton by remember {
+                                derivedStateOf {
+                                    backStack.filterNot { it.destination.route == null }.size > 1
+                                }
+                            }
+
+                            if (showBackButton) {
+                                IconButton(onClick = { simpleNavigator.navigateUp() }) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        }
+                    )
                 }
+            ) { innerPadding ->
+                AppNavHost(
+                    simpleNavigator = simpleNavigator,
+                    innerPadding = innerPadding,
+                    navController = navController,
+                )
             }
         }
     }
